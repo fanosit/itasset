@@ -47,18 +47,28 @@
 </div>
 
 <script>
-    // Initialize Zoho Creator Widget with scope configuration
-    ZOHO.CREATOR.init({ "scope": "creator" }).then(function(data) {
-        console.log("Widget initialized with Creator scope.");
-        fetchAssetsFromCreator();
-    }).catch(function(err){
-        console.error("Initialization error: ", err);
-    });
+    // ZOHO லைப்ரரி லோடு ஆகிவிட்டதா என்று செக் செய்யும் குட்டி லாஜிக்
+    var checkZohoSDK = setInterval(function() {
+        if (typeof ZOHO !== 'undefined' && ZOHO.CREATOR) {
+            clearInterval(checkZohoSDK); // லோடு ஆகிவிட்டால் செக் செய்வதை நிறுத்திவிடு
+            initializeWidget();          // விட்ஜெட்டை ரன் பண்ணு
+        }
+    }, 100); // ஒவ்வொரு 100 மில்லிசெகண்டிற்கும் செக் செய்யும்
+
+    function initializeWidget() {
+        // Initialize Zoho Creator Widget with scope configuration
+        ZOHO.CREATOR.init({ "scope": "creator" }).then(function(data) {
+            console.log("Widget initialized successfully via Safe Check!");
+            fetchAssetsFromCreator();
+        }).catch(function(err){
+            console.error("Initialization error: ", err);
+        });
+    }
 
     function fetchAssetsFromCreator() {
         var config = {
-            appName : "fanosdesk", // ✅ லிங்க் படி மாற்றப்பட்டது
-            reportName : "All_Active_Assets_IT", // ⚠️ ஒருவேளை எர்ரர் வந்தால், உங்க ஒரிஜினல் ரிப்போர்ட் லிங்க் நேமை இங்கே மாத்துங்க
+            appName : "fanosdesk", 
+            reportName : "Add_New_Asset_Report", // ⚠️ ஒருவேளை எர்ரர் வந்தால், உங்க ஒரிஜினல் ரிப்போர்ட் லிங்க் நேமை இங்கே மாத்துங்க
             pageSize : "100"
         };
 
