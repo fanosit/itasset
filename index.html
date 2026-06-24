@@ -6,7 +6,9 @@
     <title>Asset QR Generator</title>
     
     <!-- Zoho Official Live SDK -->
-    <script src="https://js.zohostatic.com/creator/widgets/version1/zohoEmbedDocument.js"></script>
+    <script>
+       var ZOHO={CREATOR:{init:function(){return new Promise(function(e,n){window.addEventListener("message",function(n){if(n.data&&"v1"===n.data.action)e(n.data.data)},!1)})}}};
+   </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
