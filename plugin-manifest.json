@@ -1,0 +1,12 @@
+{
+  "widgets": [
+    {
+      "display_name": "Asset QR Label Generator",
+      "id": "asset-qr-generator",
+      "version": "1.0.0",
+      "description": "Select multiple assets and generate QR code labels instantly.",
+      "sandbox_url": "/index.html",
+      "hosted_url": "/index.html"
+    }
+  ]
+}
