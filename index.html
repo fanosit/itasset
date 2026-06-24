@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asset QR Generator</title>
     
-    <!-- Zoho SDK & QR Code JS Library -->
+    <!-- Zoho Official Live SDK -->
     <script src="https://js.zohostatic.com/creator/widgets/version1/zohoEmbedDocument.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
@@ -13,19 +13,14 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc; padding: 20px; color: #334155; }
         .container { max-width: 800px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-        
-        /* Multi-select Box Styling */
         .select-box { width: 100%; height: 150px; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; background: #fff; margin-bottom: 15px; }
         .btn { background-color: #2563eb; color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .btn:hover { background-color: #1d4ed8; }
-        
-        /* QR Grid Label Styling */
         .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-top: 25px; }
         .qr-card { background: #fff; border: 2px dashed #cbd5e1; padding: 15px; text-align: center; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .qr-card p { margin: 10px 0 0 0; font-size: 12px; font-weight: bold; color: #475569; word-break: break-all; }
         .print-btn { background-color: #059669; margin-left: 10px; }
         .print-btn:hover { background-color: #047857; }
-        
         @media print {
             body * { visibility: hidden; }
             .qr-grid, .qr-grid * { visibility: visible; }
@@ -39,55 +34,63 @@
     <h2>Asset QR Code Label Generator 🏷️</h2>
     <p>கீழே இருக்கும் பாக்ஸில் தேவையான அசெட்களை செலக்ட் செய்து QR லேபிள்களை உருவாக்குங்கள் (Ctrl அழுத்திப் பிடித்து பல அசெட்களை செலக்ட் செய்யலாம்):</p>
     
-    <!-- Multi select box -->
     <select id="assetSelector" class="select-box" multiple>
-        <option value="">Loading Assets from Zoho Creator...</option>
+        <option value="">Loading Assets from FanosDesk...</option>
     </select>
     
     <button class="btn" onclick="generateQRLabels()">Generate QR Labels</button>
     <button class="btn print-btn" onclick="window.print()">Print Labels</button>
     
-    <!-- QR codes display here -->
     <div id="qrGrid" class="qr-grid"></div>
 </div>
 
 <script>
-    // Initialize Zoho Creator Widget
-    ZOHO.CREATOR.init().then(function(data) {
+    // Initialize Zoho Creator Widget with scope configuration
+    ZOHO.CREATOR.init({ "scope": "creator" }).then(function(data) {
+        console.log("Widget initialized with Creator scope.");
         fetchAssetsFromCreator();
+    }).catch(function(err){
+        console.error("Initialization error: ", err);
     });
 
-    // 1. Fetch data from your Zoho Creator Form
     function fetchAssetsFromCreator() {
         var config = {
-            appName : "fanosdesk", // ⚠️ உங்க அப்ளிகேஷன் லிங்க் நேம் போடுங்க
-            reportName : "All_Active_Assets_IT", // ⚠️ உங்க அசெட் ஃபார்மோட ரிப்போர்ட் நேம் போடுங்க
+            appName : "fanosdesk", // ✅ லிங்க் படி மாற்றப்பட்டது
+            reportName : "All_Active_Assets_IT", // ⚠️ ஒருவேளை எர்ரர் வந்தால், உங்க ஒரிஜினல் ரிப்போர்ட் லிங்க் நேமை இங்கே மாத்துங்க
             pageSize : "100"
-        }
+        };
 
         ZOHO.CREATOR.API.getAllRecords(config).then(function(response){
             var recordList = response.data;
             var selector = document.getElementById("assetSelector");
-            selector.innerHTML = ""; // Clear loading text
+            selector.innerHTML = ""; 
             
+            if(!recordList || recordList.length === 0) {
+                selector.innerHTML = "<option>No assets found in the report.</option>";
+                return;
+            }
+
             recordList.forEach(function(record) {
                 var option = document.createElement("option");
-                // ⚠️ 'Asset_ID' மற்றும் 'Asset_Name' உங்க ஃபீல்ட் பெயர்களுக்கு ஏற்ப மாத்திக்கோங்க
-                option.value = record.Asset_ID; 
-                option.text = record.Asset_ID + " - " + (record.Asset_Name || "");
+                
+                // ⚠️ உங்க ஃபார்மில் இருக்கும் அக்யூரெட் ஃபீல்டு பெயர்களை (ID மற்றும் Name) இங்கே கொடுக்கவும்
+                var assetID = record.Asset_ID || record.ID || "No-ID";
+                var assetName = record.Asset_Name || record.Item_Name || "";
+                
+                option.value = assetID; 
+                option.text = assetID + " - " + assetName;
                 selector.appendChild(option);
             });
         }).catch(function(error) {
             console.error("Error fetching records: ", error);
-            document.getElementById("assetSelector").innerHTML = "<option>Error loading assets. Check field/report names.</option>";
+            document.getElementById("assetSelector").innerHTML = "<option>Error loading assets. Please check Report/Field Link Names.</option>";
         });
     }
 
-    // 2. Logic to generate QR codes for selected items
     function generateQRLabels() {
         var selector = document.getElementById("assetSelector");
         var qrGrid = document.getElementById("qrGrid");
-        qrGrid.innerHTML = ""; // Reset old QR codes
+        qrGrid.innerHTML = ""; 
         
         var selectedOptions = Array.from(selector.selectedOptions);
         
@@ -99,7 +102,6 @@
         selectedOptions.forEach(function(option, index) {
             var assetID = option.value;
             
-            // Create a card for each QR
             var qrCard = document.createElement("div");
             qrCard.className = "qr-card";
             
@@ -113,7 +115,6 @@
             
             qrGrid.appendChild(qrCard);
             
-            // Render QR code using QRCode.js library
             new QRCode(document.getElementById("qr_code_" + index), {
                 text: assetID,
                 width: 128,
